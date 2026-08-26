@@ -5,10 +5,7 @@ import com.store.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -25,7 +22,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createOrder(
+    public ResponseEntity<?> createOrder(@RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody CreateOrderRequest request) {
 
         log.info(
@@ -35,9 +32,9 @@ public class OrderController {
                 request.customerEmail()
         );
 
-        long orderId = orderService.createOrder(request);
+        long orderId = orderService.createOrder(request, idempotencyKey);
 
-        log.info( "Order created successfully: orderId={}", orderId );
+        log.info("Order processed successfully: orderId={}, idempotencyKey={}", orderId, idempotencyKey);
 
         // Return response immediately
         return ResponseEntity

@@ -23,10 +23,22 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
       properties:
         spring.json.add.type.headers: true
         spring.json.type.mapping: orderCreated:com.store.order.event.OrderCreatedEvent
+
+    consumer:
+      group-id: order-service
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.store.order.event
+        spring.json.use.type.headers: true
+        spring.json.type.mapping: >
+          inventoryFailed:com.store.order.event.InventoryFailedEvent,
+          paymentCompleted:com.store.order.event.PaymentCompletedEvent,
+          paymentFailed:com.store.order.event.PaymentFailedEvent    
 
 logging:
   level:
