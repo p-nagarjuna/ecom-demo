@@ -1,0 +1,51 @@
+server:
+  port: 8083
+
+spring:
+
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_db
+    username: postgres
+    password: postgres123
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: inventory-service
+      auto-offset-reset: earliest
+      key-deserializer:
+        org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer:
+        org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.use.type.headers: true
+        spring.json.trusted.packages: com.store.inventory.event,com.store.order.event,com.store.payment.event
+        spring.json.type.mapping: >
+          orderCreated:com.store.inventory.event.OrderCreatedEvent,
+          paymentFailed:com.store.inventory.event.PaymentFailedEvent
+
+    producer:
+      key-serializer:
+        org.apache.kafka.common.serialization.StringSerializer
+      value-serializer:
+        org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+        spring.json.type.mapping: >
+          inventoryReserved:com.store.inventory.event.InventoryReservedEvent,
+          inventoryFailed:com.store.inventory.event.InventoryFailedEvent,
+          inventoryReleased:com.store.inventory.event.InventoryReleasedEvent
+
+logging:
+  level:
+    root: INFO
+    com.store: DEBUG
+    org.springframework.kafka: INFO
