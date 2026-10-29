@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: keycloak_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak_admin
+      POSTGRES_PASSWORD: supersecretpassword # Change in production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - keycloak_network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1 # Uses official Quarkus-based Keycloak
+    container_name: keycloak_auth
+    restart: always
+    command: start-dev # Use 'start' for production deployment
+    environment:
+      # Database Configurations
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak_admin
+      KC_DB_PASSWORD: supersecretpassword
+      
+      # Initial Admin User Credentials
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: adminpassword # Change in production
+      
+      # Dev Feature Flags (Remove or adjust KC_HTTP_ENABLED for strict production HTTPS setups)
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    ports:
+      - "9090:8080"
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_network
+
+volumes:
+  postgres_data:
+
+networks:
+  keycloak_network:
